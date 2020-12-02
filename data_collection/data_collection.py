@@ -20,11 +20,10 @@ def get_mask_of_color(img, color):
     
     mask = np.zeros((n,m), dtype=np.uint8)
 
-    for i in range(n):
-        for j in range(m):
-            if list(img[i,j])==color:
-                mask[i,j] = 1
-
+    color_array = color * np.ones((n,m,3), dtype=np.uint8)
+    mask = np.equal(img, color_array).all(2)
+    mask = mask.astype(np.uint8)
+    
     return mask
 
 def clean_segmented_image(seg_img):
