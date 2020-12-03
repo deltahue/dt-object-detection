@@ -34,7 +34,7 @@ def clean_segmented_image(seg_img):
 
     # morphology params
     kernel = np.ones((3,3),np.uint8)
-    it = 2
+    it = 1
 
     boxes = []
     classes = []
@@ -60,7 +60,7 @@ def clean_segmented_image(seg_img):
         
         # clean "snow"
         mask = cv2.morphologyEx(mask, cv2.MORPH_ERODE, kernel, iterations = it)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel, iterations = it)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel, iterations = it+2)
 
         # get contour
         contours, _ = cv2.findContours(mask, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
@@ -75,12 +75,12 @@ def clean_segmented_image(seg_img):
 
 
     # draw
-    #for i, box in enumerate(boxes):
-    #    cv2.rectangle(seg_img, (box[0], box[1]), (box[2], box[3]), [classes[i]*50, 255 - classes[i], 0])
+    for i, box in enumerate(boxes):
+        cv2.rectangle(seg_img, (box[0], box[1]), (box[2], box[3]), [classes[i]*50, 255 - classes[i], 0])
 
-    #cv2.imshow('1', seg_img)
+    cv2.imshow('1', seg_img)
 
-    #cv2.waitKey(300) 
+    cv2.waitKey(50) 
     return boxes, classes
 
 seed(123)
@@ -105,6 +105,9 @@ while True:
 
         rewards.append(rew)
         environment.render(segment=int(nb_of_steps / 50) % 2 == 0)
+
+        obs = cv2.resize(obs, (224, 224))
+        segmented_obs = cv2.resize(segmented_obs, (224, 224))
 
         boxes, classes = clean_segmented_image(segmented_obs)
         save_npz(obs, boxes, classes)
