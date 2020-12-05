@@ -1,4 +1,6 @@
 import torch
+import torchvision
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.transforms.functional import to_tensor
 
 
@@ -10,7 +12,8 @@ class Wrapper:
 
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = Model()
-        self.model.load_state_dict(torch.load("weights/model.pt", map_location=self.device))
+        # TODO: path is hacked
+        self.model.load_state_dict(torch.load("./model/weights/model.pt", map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
 
@@ -49,6 +52,14 @@ class Model(torch.nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         # TODO Instantiate your weights etc here!
+
+        self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+
+        # get number of input features for the classifier
+        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+        # replace the pre-trained head with a new one
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, 5)
+
         pass
 
     def forward(self, x, y=None):

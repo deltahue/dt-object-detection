@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import torch
-import transforms as T
 from PIL import Image
 
 
@@ -42,10 +41,3 @@ class DuckietownDataset(object):
 
     def __len__(self):
         return len(self.archives)
-
-def get_transform(self, train):
-    transforms = []
-    transforms.append(T.ToTensor())
-    if train:
-        transforms.append(T.RandomHorizontalFlip(0.5))
-    return T.Compose(transforms)
