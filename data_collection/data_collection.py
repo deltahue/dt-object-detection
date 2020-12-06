@@ -110,7 +110,8 @@ while True:
         segmented_obs = cv2.resize(segmented_obs, (224, 224))
 
         boxes, classes = clean_segmented_image(segmented_obs)
-        save_npz(obs, boxes, classes)
+        if len(boxes) > 0:
+            save_npz(obs, boxes, classes)
 
         nb_of_steps += 1
 
