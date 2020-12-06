@@ -88,7 +88,7 @@ environment = launch_env()
 
 policy = PurePursuitPolicy(environment)
 
-MAX_STEPS = 500
+MAX_STEPS = 2000
 
 while True:
     obs = environment.reset()
@@ -110,9 +110,10 @@ while True:
         segmented_obs = cv2.resize(segmented_obs, (224, 224))
 
         boxes, classes = clean_segmented_image(segmented_obs)
-        save_npz(obs, boxes, classes)
+        if len(boxes) != 0:
+            save_npz(obs, boxes, classes)
 
-        nb_of_steps += 1
+            nb_of_steps += 1
 
         if done or nb_of_steps > MAX_STEPS:
             break
