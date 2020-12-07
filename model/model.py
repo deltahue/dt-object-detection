@@ -12,8 +12,9 @@ class Wrapper:
 
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = Model()
-        # TODO: path is hacked
-        self.model.load_state_dict(torch.load("./model/weights/model.pt", map_location=self.device))
+        self.model.load_state_dict(torch.load("./weights/model.pt", map_location=self.device))
+        # The above path works with the docker image, without docker you might use the following
+        # self.model.load_state_dict(torch.load("./model/weights/model.pt", map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
 

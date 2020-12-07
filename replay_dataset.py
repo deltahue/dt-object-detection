@@ -9,7 +9,7 @@ dataset_folder = "./data_collection/dataset/"
 dataset_files = list(filter(lambda x: "npz" in x, os.listdir(dataset_folder)))
 dataset_files.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
-for file in dataset_files
+for file in dataset_files:
     with np.load(f'{dataset_folder}{file}') as data:
         img, boxes, classes = tuple([data[f"arr_{i}"] for i in range(3)])
         for i, box in enumerate(boxes):
