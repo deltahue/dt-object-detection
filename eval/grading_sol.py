@@ -3,7 +3,8 @@ from map_sol import mean_average_precision
 from torchvision.transforms.functional import to_tensor
 import os
 import numpy as np
-from model import Wrapper
+from model.model import Wrapper
+import cv2
 
 dataset_files = list(filter(lambda x: "npz" in x, os.listdir("./dataset")))
 
@@ -40,6 +41,21 @@ for nb_batch in trange(len(batches)):
             img, boxes, classes = tuple([data[f"arr_{i}"] for i in range(3)])
 
             p_boxes, p_classes, p_scores = wrapper.predict(np.array([img]))
+
+            img_tmp = img
+
+            for i, box in enumerate(boxes):
+                cv2.rectangle(img_tmp, (box[0], box[1]), (box[2], box[3]), [0, 0, 255])
+
+            for i, box in enumerate(p_boxes):
+                for j in range(np.shape(box)[0]):
+                    cv2.rectangle(img_tmp, (box[j][0], box[j][1]), (box[j][2], box[j][3]), [0, 255, 0])
+
+            img_tmp = cv2.resize(img_tmp, (img_tmp.shape[1]*4, img_tmp.shape[0]*4))
+            cv2.imshow('1', img_tmp)
+
+            cv2.waitKey(50)
+
 
             for j in range(len(p_boxes)):
                 pred_boxes += make_boxes(nb_batch+nb_img, p_classes[j], p_scores[j], p_boxes[j])
