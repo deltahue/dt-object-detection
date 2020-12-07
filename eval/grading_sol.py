@@ -1,12 +1,19 @@
-
+import sys
+sys.path.append('./model')
+print(sys.path)
 from map_sol import mean_average_precision
 from torchvision.transforms.functional import to_tensor
 import os
 import numpy as np
-from model.model import Wrapper
+from model import Wrapper
 import cv2
 
-dataset_files = list(filter(lambda x: "npz" in x, os.listdir("./dataset")))
+dataset_root = "./eval/dataset"
+dataset_root = "/home/david/Downloads/set3/newstyle_validation_dataset/"
+dataset_files = list(filter(lambda x: "npz" in x, os.listdir(dataset_root)))
+
+# set max_it=-1 for the whole set
+max_it = 100
 
 true_boxes = []
 pred_boxes = []
@@ -37,12 +44,12 @@ for nb_batch in trange(len(batches)):
     batch = batches[nb_batch]
 
     for nb_img, file in enumerate(batch):
-        with np.load(f'./dataset/{file}') as data:
+        with np.load(dataset_root+f'{file}') as data:
             img, boxes, classes = tuple([data[f"arr_{i}"] for i in range(3)])
 
             p_boxes, p_classes, p_scores = wrapper.predict(np.array([img]))
 
-            img_tmp = img
+            img_tmp = img.copy()
 
             for i, box in enumerate(boxes):
                 cv2.rectangle(img_tmp, (box[0], box[1]), (box[2], box[3]), [0, 0, 255])
@@ -50,16 +57,33 @@ for nb_batch in trange(len(batches)):
             for i, box in enumerate(p_boxes):
                 for j in range(np.shape(box)[0]):
                     cv2.rectangle(img_tmp, (box[j][0], box[j][1]), (box[j][2], box[j][3]), [0, 255, 0])
+                    cv2.putText(img_tmp,str(p_classes[i][j]), 
+                            (box[j][0], box[j][1]), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 
+                            0.3,
+                            (255, 255, 255) , 1,
+                            cv2.LINE_AA)
 
             img_tmp = cv2.resize(img_tmp, (img_tmp.shape[1]*4, img_tmp.shape[0]*4))
+            cv2.putText(img_tmp,'G: Predicted, Red: GT', 
+                            (40,40), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 
+                            1,
+                            (255, 255, 255) , 1,
+                            cv2.LINE_AA)
+            
             cv2.imshow('1', img_tmp)
 
             cv2.waitKey(50)
 
 
+
             for j in range(len(p_boxes)):
                 pred_boxes += make_boxes(nb_batch+nb_img, p_classes[j], p_scores[j], p_boxes[j])
             true_boxes += make_boxes(nb_batch+nb_img, classes, [1.0]*len(classes), boxes)
+    if nb_batch == max_it:
+        break
+
 
 true_boxes = np.array(true_boxes, dtype=float)
 pred_boxes = np.array(pred_boxes, dtype=float)
