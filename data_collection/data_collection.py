@@ -33,7 +33,7 @@ def clean_segmented_image(seg_img):
     # TODO: mulple instances get classified as one instance, is this a problem?
 
     # area threshold:
-    thresh_area = 100
+    thresh_area = 50
 
     boxes = []
     classes = []
@@ -71,9 +71,11 @@ def clean_segmented_image(seg_img):
             # TODO: maybe check size
 
             x,y,w,h = cv2.boundingRect(contour)
-
-            area = w*h
+            #bounding box area method
+            #area = w*h
             
+            #countour area method
+            area = cv2.contourArea(contour)
             if area > thresh_area:
                 print(area)
                 boxes.append([x, y, x+w, y+h])
