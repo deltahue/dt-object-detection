@@ -6,8 +6,6 @@ from dataset import DuckietownDataset
 from model import Model
 
 def main():
-    # TODO train loop here!
-    # TODO don't forget to save the model's weights inside of `./weights`!
 
     # train on the GPU or on the CPU, if a GPU is not available
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -46,7 +44,7 @@ def main():
                                                    step_size=3,
                                                    gamma=0.1)
 
-    # let's train it for 10 epochs
+    # ltrain for 10 epochs
     num_epochs = 10
 
     for epoch in range(num_epochs):
@@ -54,13 +52,13 @@ def main():
         train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
         # update the learning rate
         lr_scheduler.step()
-        # evaluate on the test dataset
+        # evaluate on the test dataset # this is commented out to avoid some coco dependencies
         # evaluate(model, data_loader_test, device=device)
 
     # Save the weights
     torch.save(model.state_dict(), 'model/weights/model.pt')
 
-    print("That's it!")
+    print("Finished training!")
     
 def get_transform(train):
     transforms = []
