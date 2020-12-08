@@ -32,9 +32,8 @@ def clean_segmented_image(seg_img):
     # TODO: do we need to return the cleaned up masks
     # TODO: mulple instances get classified as one instance, is this a problem?
 
-    # morphology params
-    kernel = np.ones((3,3),np.uint8)
-    it = 1
+    # area threshold:
+    thresh_area = 50
 
     boxes = []
     classes = []
@@ -59,8 +58,10 @@ def clean_segmented_image(seg_img):
         mask = get_mask_of_color(seg_img, class_color_def[key])
         
         # clean "snow"
+        '''
         mask = cv2.morphologyEx(mask, cv2.MORPH_ERODE, kernel, iterations = it)
         mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel, iterations = it+2)
+        '''
 
         # get contour
         contours, _ = cv2.findContours(mask, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
@@ -68,20 +69,41 @@ def clean_segmented_image(seg_img):
         # get boxes
         for contour in contours:
             # TODO: maybe check size
-            x,y,w,h = cv2.boundingRect(contour)
 
-            boxes.append([x, y, x+w, y+h])
-            classes.append(class_num_def[key])
+            x,y,w,h = cv2.boundingRect(contour)
+            #bounding box area method
+            #area = w*h
+            
+            #countour area method
+            area = cv2.contourArea(contour)
+            if area > thresh_area:
+                print(area)
+                boxes.append([x, y, x+w, y+h])
+                classes.append(class_num_def[key])
 
 
     # draw
     for i, box in enumerate(boxes):
-        cv2.rectangle(seg_img, (box[0], box[1]), (box[2], box[3]), [classes[i]*50, 255 - classes[i], 0])
+        cv2.rectangle(seg_img, (box[0], box[1]), (box[2], box[3]), [0, 255, 255])
 
-    cv2.imshow('1', seg_img)
+    cv2.imshow('1', cv2.resize(seg_img, (4*224, 4*224)))
 
-    cv2.waitKey(50) 
+    cv2.waitKey(20) 
     return boxes, classes
+
+def resize_boxes(boxes, old_size, new_size):
+    x_factor = new_size[1]/old_size[1]
+    y_factor = new_size[0]/old_size[0]
+    for i, box in enumerate(boxes):
+        xmin,ymin,xmax,ymax = box
+    
+        xmin = xmin*x_factor
+        xmax = xmax*x_factor
+
+        ymin = ymin*y_factor
+        ymax = ymax*y_factor
+        boxes[i] = xmin,ymin,xmax,ymax
+    return boxes
 
 seed(123)
 environment = launch_env()
@@ -106,10 +128,12 @@ while True:
         rewards.append(rew)
         environment.render(segment=int(nb_of_steps / 50) % 2 == 0)
 
-        obs = cv2.resize(obs, (224, 224))
-        segmented_obs = cv2.resize(segmented_obs, (224, 224))
+        
+        #segmented_obs = cv2.resize(segmented_obs, (224, 224))
 
         boxes, classes = clean_segmented_image(segmented_obs)
+        boxes = resize_boxes(boxes, obs.shape, (224,224))
+        obs = cv2.resize(obs, (224, 224))
         if len(boxes) > 0:
             save_npz(obs, boxes, classes)
 
