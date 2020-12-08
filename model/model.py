@@ -1,21 +1,23 @@
 import torch
+import torchvision
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.transforms.functional import to_tensor
 
 
 class Wrapper:
     def __init__(self):
-        # TODO Instantiate your model and other class instances here!
-        # TODO Don't forget to set your model in evaluation/testing/production mode, and sending it to the GPU
-        # TODO If no GPU is available, raise the NoGPUAvailable exception
+        # Instantiate the model and load the weights
 
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = Model()
-        self.model.load_state_dict(torch.load("weights/model.pt", map_location=self.device))
+        self.model.load_state_dict(torch.load("./weights/model.pt", map_location=self.device))
+        # The above path works with the docker image, without docker you might use the following
+        # self.model.load_state_dict(torch.load("./model/weights/model.pt", map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
 
     def predict(self, batch_or_image):
-        # TODO: Make your model predict here!
+        # Prediction step
 
         # The given batch_or_image parameter will be a numpy array (ie either a 224 x 224 x 3 image, or a
         # batch_size x 224 x 224 x 3 batch of images)
@@ -48,7 +50,15 @@ class Wrapper:
 class Model(torch.nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        # TODO Instantiate your weights etc here!
+        
+        # Define the model
+        self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+
+        # get number of input features for the classifier
+        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+        # replace the pre-trained head with a new one
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, 5)
+
         pass
 
     def forward(self, x, y=None):

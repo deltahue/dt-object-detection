@@ -1,6 +1,7 @@
 gym_duckietown
 requirements.txt
 venv
-.npz
+*.npz
 *.pt
 !Dockerfile.pt
+__pycache__
